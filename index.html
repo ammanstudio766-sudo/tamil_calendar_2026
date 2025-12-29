@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+<meta charset="UTF-8">
+<title>My Calendar 2026</title>
+
+<style>
+    /* =========================
+   MOBILE VIEW (Responsive)
+   ========================= */
+@media (max-width: 768px) {
+
+  .container {
+    flex-direction: column;
+    height: auto;
+  }
+
+  /* Sidebar on top */
+  .sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 2px solid rgb(220,220,220);
+    text-align: center;
+  }
+
+  .sidebar h3 {
+    font-size: 20px;
+  }
+
+  /* Main content */
+  .main {
+    padding: 10px;
+  }
+
+  /* Header buttons */
+  .header h2 {
+    font-size: 18px;
+  }
+
+  .header button {
+    padding: 6px 10px;
+    font-size: 14px;
+  }
+
+  /* Calendar smaller cells */
+  .calendar {
+    grid-template-columns: repeat(7, 1fr);
+  }
+
+  .day-name {
+    font-size: 12px;
+    padding: 6px;
+  }
+
+  .day {
+    height: 70px;
+    font-size: 12px;
+    padding: 4px;
+  }
+
+  .date {
+    font-size: 13px;
+  }
+
+  /* Info box mobile */
+  .info-box {
+    padding: 12px;
+  }
+
+  .info-box h3 {
+    font-size: 16px;
+  }
+
+  .info {
+    font-size: 14px;
+  }
+
+  /* Holiday scroll */
+  .holiday-scroll {
+    font-size: 14px;
+    height: auto;
+    padding: 6px 10px;
+  }
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: rgb(240,244,255);
+}
+
+.container {
+    display: flex;
+    height: 100vh;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 260px;
+    background: rgb(255,255,255);
+    padding: 20px;
+    border-right: 2px solid rgb(220,220,220);
+}
+
+.sidebar h3 {
+    margin-top: 0;
+    color: rgb(8, 214, 94);
+}
+
+/* Main */
+.main {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header button {
+    padding: 8px 14px;
+    font-size: 16px;
+    cursor: pointer;
+    background: rgb(60,80,200);
+    color: white;
+    border: none;
+    border-radius: 6px;
+}
+
+/* Calendar Grid */
+.calendar {
+    margin-top: 20px;
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    background: rgb(255,255,255);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.day-name {
+    background: rgb(230,235,255);
+    padding: 10px;
+    text-align: center;
+    font-weight: bold;
+    color: rgb(60,80,200);
+}
+
+.day {
+    height: 100px;
+    border: 1px solid rgb(230,230,230);
+    padding: 6px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.day:hover {
+    background: rgb(245,248,255);
+}
+
+.day.active {
+    background: rgb(210,220,255);
+    border: 2px solid rgb(4, 199, 62);
+}
+
+.date {
+    font-weight: bold;
+}
+
+/* Daily Info Box */
+.info-box {
+    margin-top: 25px;
+    background: rgb(255,255,255);
+    padding: 18px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.info-box h3 {
+    margin-top: 0;
+    color: rgb(0, 207, 86);
+}
+
+.info {
+    font-size: 16px;
+    margin: 10px 0;
+}
+
+/* Govt Holiday Scroll Bar */
+.holiday-scroll {
+    height: 40px;
+    overflow: hidden;
+    background: rgb(250,250,255);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 16px;
+    color: rgb(200, 40, 40);
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    margin-top: 10px;
+}
+</style>
+</head> 
+
+<body>
+
+<div class="container">
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h3>📅TAMIL CALANDER 2026</h3>
+        <p>Month View<br>Scroll & Navigate</p>
+    </div>
+
+    <!-- Main -->
+    <div class="main">
+        <div class="header">
+            <button onclick="prevMonth()">⬅</button>
+            <h2 id="monthYear"></h2>
+            <button onclick="nextMonth()">➡</button>
+        </div>
+
+        <div class="calendar" id="calendar"></div>
+
+        <!-- Daily Info -->
+        <div class="info-box">
+            <h3 id="selectedDate">📌 இன்றைய விபரம்</h3>
+            <div class="info" id="nalla">🟢 நல்ல நேரம்: --</div>
+            <div class="info" id="gowri">🟡 கௌரி நேரம்: --</div>
+            <div class="info" id="muhurtham">⭐ முகூர்த்த நாள்: --</div>
+            <div class="info" id="rasi">♈ ராசி பலன்: --</div>
+
+            <!-- Govt Holiday Scroll -->
+            <div id="holidayScroll" class="holiday-scroll"></div>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+let currentDate = new Date();
+let selectedCell = null;
+
+// Govt Holidays Data
+const tnGovtHolidays = {
+    2025: [
+        "🎉 Jan 01 – New Year",
+        "🌾 Jan 14 – Pongal",
+        "📜 Jan 15 – Thiruvalluvar Day",
+        "🚜 Jan 16 – Uzhavar Thirunal",
+        "🇮🇳 Jan 26 – Republic Day",
+        "👷 May 01 – Labour Day",
+        "🇮🇳 Aug 15 – Independence Day",
+        "🕊️ Oct 02 – Gandhi Jayanthi",
+        "🪔 Nov 01 – Deepavali",
+        "🎄 Dec 25 – Christmas"
+    ],
+    2026: [
+        "🎉 Jan 01 – New Year",
+        "🌾 Jan 14 – Pongal",
+        "📜 Jan 15 – Thiruvalluvar Day",
+        "🇮🇳 Jan 26 – Republic Day",
+        "👷 May 01 – Labour Day",
+        "🇮🇳 Aug 15 – Independence Day",
+        "🕊️ Oct 02 – Gandhi Jayanthi",
+        "🪔 Nov 08 – Deepavali",
+        "🎄 Dec 25 – Christmas"
+    ]
+};
+
+let hIndex = 0;
+
+// Scroll function
+function startHolidayScroll() {
+    const box = document.getElementById("holidayScroll");
+    const year = currentDate.getFullYear();
+    const list = tnGovtHolidays[year] || ["No Holiday Data"];
+
+    box.innerText = list[hIndex];
+    hIndex = (hIndex + 1) % list.length;
+}
+
+// Days & Rasi
+const days = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+const rasiList = [
+    "மேஷம்","ரிஷபம்","மிதுனம்","கடகம்",
+    "சிம்மம்","கன்னி","துலாம்","விருச்சிகம்",
+    "தனுசு","மகரம்","கும்பம்","மீனம்"
+];
+
+function renderCalendar() {
+    const calendar = document.getElementById("calendar");
+    calendar.innerHTML = "";
+
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+
+    document.getElementById("monthYear").innerText =
+        currentDate.toLocaleDateString("ta-IN",{month:"long",year:"numeric"});
+
+    days.forEach(d => {
+        const div = document.createElement("div");
+        div.className = "day-name";
+        div.innerText = d;
+        calendar.appendChild(div);
+    });
+
+    const firstDay = new Date(year, month, 1).getDay();
+    const lastDate = new Date(year, month + 1, 0).getDate();
+
+    for(let i=0; i<firstDay; i++){
+        calendar.appendChild(document.createElement("div"));
+    }
+    for(let d=1; d<=lastDate; d++){
+        const dayDiv = document.createElement("div");
+        dayDiv.className = "day";
+        dayDiv.innerHTML = `<div class="date">${d}</div>`;
+        dayDiv.onclick = () => {
+            if(selectedCell) selectedCell.classList.remove("active");
+            dayDiv.classList.add("active");
+            selectedCell = dayDiv;
+            showDetails(d, month, year);
+        };
+        calendar.appendChild(dayDiv);
+    }
+}
+
+function showDetails(d, m, y) {
+    const date = new Date(y, m, d);
+    document.getElementById("selectedDate").innerText =
+        "📌 " + date.toLocaleDateString("ta-IN",{day:"numeric",month:"long",year:"numeric"});
+
+    document.getElementById("nalla").innerText =
+        "🟢 நல்ல நேரம்: காலை 9:00 - 10:30";
+
+    document.getElementById("gowri").innerText =
+        "🟡 கௌரி நேரம்: மாலை 4:30 - 6:00";
+
+    document.getElementById("muhurtham").innerText =
+        (d % 2 === 0) ? "⭐ முகூர்த்த நாள்: ஆம்" : "❌ முகூர்த்த நாள்: இல்லை";
+
+    document.getElementById("rasi").innerText =
+        "♈ ராசி பலன்: " + rasiList[d % 12];
+}
+
+// Month Navigation
+function nextMonth(){
+    currentDate.setMonth(currentDate.getMonth() + 1);
+    renderCalendar();
+    startHolidayScroll();
+}
+
+function prevMonth(){
+    currentDate.setMonth(currentDate.getMonth() - 1);
+    renderCalendar();
+    startHolidayScroll();
+}
+
+// Initialize
+renderCalendar();
+showDetails(currentDate.getDate(), currentDate.getMonth(), currentDate.getFullYear());
+startHolidayScroll();
+setInterval(startHolidayScroll, 2500);
+
+</script>
+
+</body>
+</html>
